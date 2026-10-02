@@ -49,21 +49,52 @@ retire this project.
 
 ## Install
 
-[omarchy-setup](https://github.com/lbssousa/omarchy-setup) automates it
-(`just polkit-agent`, with this repository cloned to
-`~/Projetos/lbssousa/polkit-omarchy`). By hand, from a checkout of this
-repository, `just link` does the same (see below).
+You need Omarchy 4 with omarchy-shell, and a security key set up with
+pam_u2f for polkit, for example a line like this in `/etc/pam.d/polkit-1`
+(`cue` makes PAM print the touch request):
 
-## Use
+```
+auth      sufficient pam_u2f.so cue authfile=/etc/fido2/fido2
+```
+
+Then, from a checkout of this repository:
+
+```sh
+git clone https://github.com/lbssousa/polkit-omarchy.git
+cd polkit-omarchy
+just link
+```
+
+`just link` symlinks `plugin/` into `~/.config/omarchy/plugins`, enables
+the plugin (which disables `omarchy.polkit`) and restarts the shell. Without
+[just](https://just.systems/), the same by hand:
+
+```sh
+mkdir -p ~/.config/omarchy/plugins
+ln -sfn "$PWD/plugin" ~/.config/omarchy/plugins/lbssousa.polkit
+omarchy-shell shell rescanPlugins
+omarchy plugin enable lbssousa.polkit
+omarchy-restart-shell
+```
+
+The shell restart is needed because a `keepLoaded` service isn't reloaded
+when its files change. To install it outside your home directory, copy
+`plugin/` somewhere (say `/usr/share/polkit-omarchy/plugin`) and link that
+instead of the checkout.
+
+Check it with `pkexec true` and the key plugged in: you should see the key
+prompt, and touching the key authorizes. To go back to Omarchy's own agent,
+run `just unlink` (or `omarchy plugin disable lbssousa.polkit`, then remove
+the symlink, then `omarchy-restart-shell`).
+
+## Development
 
 | Recipe | What it does |
 |---|---|
 | `just test` | Node tests for `PolkitModel.js` and `omarchy plugin validate` |
-| `just link` | Symlinks `plugin/` to `~/.config/omarchy/plugins/lbssousa.polkit`, enables it (disabling `omarchy.polkit`) and restarts the shell |
+| `just link` | Installs the checkout's plugin in the real shell (see above) |
 | `just unlink` | Back to `omarchy.polkit` |
 | `just diff-upstream` | Diff against the installed Omarchy agent |
-
-Then `pkexec true` with the key plugged in.
 
 ## Security
 
