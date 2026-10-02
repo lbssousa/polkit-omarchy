@@ -96,6 +96,24 @@ the symlink, then `omarchy-restart-shell`).
 | `just unlink` | Back to `omarchy.polkit` |
 | `just diff-upstream` | Diff against the installed Omarchy agent |
 
+## Releases
+
+`main` only takes squash-merged pull requests, which GitHub signs with its
+own key. A release is therefore a **GPG-signed tag** made by the maintainer
+on the merged commit. Check one with `git verify-tag vX.Y.Z` after
+importing the maintainer's public key.
+
+1. Open a PR that bumps the version in `plugin/manifest.json`.
+   The same PR turns the "Unreleased" section of
+   [CHANGELOG.md](CHANGELOG.md) into the new version's release notes.
+   Merge it.
+2. Tag the merge commit and push the tag:
+   ```sh
+   git switch main && git pull
+   git tag -s vX.Y.Z -m "polkit-omarchy X.Y.Z"
+   git push origin vX.Y.Z
+   ```
+
 ## Security
 
 See [SECURITY.md](SECURITY.md) for the threat model and how to report a
