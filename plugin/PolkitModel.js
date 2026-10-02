@@ -46,6 +46,33 @@ function securityKeyConfiguredFromPamConfig(raw) {
   return passiveAuthModules(raw).indexOf("security-key") !== -1
 }
 
+// Which method owns the dialog while PAM waits on hardware. These live here
+// rather than in QML bindings so tests/ can check the property that matters:
+// a password prompt from PAM (`responseRequired`) is never hidden. `s` holds
+// the dialog's state: dialogVisible, responseRequired, submitted, errorFlash,
+// supplementary (PAM's info message), securityKeyConfigured, securityKeyFirst,
+// fingerprintConfigured and laptopClosed.
+function waitingOnHardware(s) {
+  return !!s.dialogVisible && !s.responseRequired && !s.submitted && !s.errorFlash
+}
+
+// pam_u2f blocks until the key is touched and asks for nothing — at most an
+// info message ("Please touch the device." with `cue`). A cue tells us for
+// sure; without one, go by the PAM stack (u2f first, or the fingerprint
+// reader out of the way).
+function securityKeyMode(s) {
+  if (!waitingOnHardware(s)) return false
+  if (messageLooksSecurityKey(s.supplementary)) return true
+  return !!s.securityKeyConfigured && !promptLooksFingerprint(s.supplementary)
+    && (!!s.securityKeyFirst || !s.fingerprintConfigured || !!s.laptopClosed)
+}
+
+// Fingerprint owns the dialog while PAM waits on the reader (lid open, sensor
+// enrolled), unless it's the security key being waited on.
+function fingerprintMode(s) {
+  return !!s.fingerprintConfigured && !s.laptopClosed && waitingOnHardware(s) && !securityKeyMode(s)
+}
+
 function passwordPlaceholder(prompt) {
   // PAM's own prompt when it asks for a PIN instead of the password
   // (pam_u2f with pinverification asks "Please enter the PIN:").
@@ -64,6 +91,9 @@ if (typeof module !== "undefined") {
     promptLooksFingerprint: promptLooksFingerprint,
     fingerprintConfiguredFromPamConfig: fingerprintConfiguredFromPamConfig,
     messageLooksSecurityKey: messageLooksSecurityKey,
+    waitingOnHardware: waitingOnHardware,
+    securityKeyMode: securityKeyMode,
+    fingerprintMode: fingerprintMode,
     passiveAuthModules: passiveAuthModules,
     securityKeyConfiguredFromPamConfig: securityKeyConfiguredFromPamConfig,
     passwordPlaceholder: passwordPlaceholder,

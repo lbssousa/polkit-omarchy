@@ -68,7 +68,8 @@ Then `pkexec true` with the key plugged in.
 ## Security
 
 See [SECURITY.md](SECURITY.md) for the threat model and how to report a
-vulnerability.
+vulnerability, and [CONTRIBUTING.md](CONTRIBUTING.md) if you want to change
+something.
 
 ## License
 
