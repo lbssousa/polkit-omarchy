@@ -7,7 +7,7 @@ default:
 
 # Unit tests for the pure helpers in PolkitModel.js.
 test:
-    node --test tests/
+    node --test tests/*.test.js
     omarchy-plugin-validate plugin
 
 # Load this checkout's agent in the real shell. Enabling a clone of
