@@ -21,3 +21,14 @@ jobs:
       # manifest with Omarchy's own `omarchy plugin validate`.
       - name: Tests
         run: node --test tests/*.test.js
+
+      # For reviewers: what this plugin changes in Omarchy's agent.
+      - name: Changes against Omarchy's agent
+        run: |
+          {
+            echo '### Changes against `upstream/` (the Omarchy agent this is based on)'
+            echo '```diff'
+            diff -u upstream/PolkitModel.js plugin/PolkitModel.js || true
+            diff -u upstream/PolkitAgent.qml plugin/PolkitAgent.qml || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

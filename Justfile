@@ -25,6 +25,12 @@ unlink:
     rm -f {{plugin_link}}
     omarchy-restart-shell
 
+# Show what this plugin changes relative to the Omarchy files it is based on
+# (the snapshot in upstream/).
+diff-base:
+    -diff -u upstream/PolkitModel.js plugin/PolkitModel.js
+    -diff -u upstream/PolkitAgent.qml plugin/PolkitAgent.qml
+
 # Show what this agent changes relative to the installed Omarchy one.
 diff-upstream:
     -diff -u /usr/share/omarchy/shell/plugins/polkit/PolkitModel.js plugin/PolkitModel.js

@@ -99,7 +99,8 @@ the symlink, then `omarchy-restart-shell`).
 ## Security
 
 See [SECURITY.md](SECURITY.md) for the threat model and how to report a
-vulnerability.
+vulnerability, and [CONTRIBUTING.md](CONTRIBUTING.md) if you want to change
+something.
 
 ## License
 
