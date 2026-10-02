@@ -20,4 +20,4 @@ jobs:
       # helpers in plugin/PolkitModel.js. `just test` also validates the
       # manifest with Omarchy's own `omarchy plugin validate`.
       - name: Tests
-        run: node --test tests/
+        run: node --test tests/*.test.js
