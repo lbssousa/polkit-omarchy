@@ -6,6 +6,8 @@ follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-10-02
+
 ### Added
 - The security key prompt: while pam_u2f waits for a touch, the dialog shows
   a pulsing key and "Touch your security key" instead of a password field
