@@ -67,23 +67,33 @@ function securityKeyMode(s) {
     && (!!s.securityKeyFirst || !s.fingerprintConfigured || !!s.laptopClosed)
 }
 
+// Whether an answer is still being checked after PAM's flow changed. `s`
+// holds submitted, responseRequired, supplementary and messageChanged (PAM
+// sent a new info message). PAM asking again ends the check; so does a new
+// touch cue, since PAM then took the answer (pam_u2f's PIN with
+// `pinverification`) and waits on the key instead.
+function stillSubmitted(s) {
+  if (!s.submitted || s.responseRequired) return false
+  return !(s.messageChanged && messageLooksSecurityKey(s.supplementary))
+}
+
 // Fingerprint owns the dialog while PAM waits on the reader (lid open, sensor
 // enrolled), unless it's the security key being waited on.
 function fingerprintMode(s) {
   return !!s.fingerprintConfigured && !s.laptopClosed && waitingOnHardware(s) && !securityKeyMode(s)
 }
 
-function passwordPlaceholder(prompt) {
-  // PAM's own prompt when it asks for a PIN instead of the password
-  // (pam_u2f with pinverification asks "Please enter the PIN:").
-  var text = String(prompt || "").replace(/^\s+|[\s:]+$/g, "")
-  return /\bPIN\b/.test(text) ? text : "Enter password"
+// pam_u2f with pinverification asks "Please enter the PIN:" instead of the
+// password.
+function promptAsksPin(prompt) {
+  return /\bPIN\b/.test(String(prompt || ""))
 }
 
-function authorizationLabel(message) {
+function authorizationLabel(message, tr) {
+  var t = typeof tr === "function" ? tr : function(key, english) { return english }
   var text = String(message || "")
   var match = text.match(/^Authentication is (?:needed|required) to run [`']([^`']+)[`'] as /i)
-  return match ? "Authorize running '" + match[1] + "'" : text
+  return match ? t("polkit.authorizeRunning", "Authorize running '%1'").replace("%1", match[1]) : text
 }
 
 if (typeof module !== "undefined") {
@@ -93,10 +103,11 @@ if (typeof module !== "undefined") {
     messageLooksSecurityKey: messageLooksSecurityKey,
     waitingOnHardware: waitingOnHardware,
     securityKeyMode: securityKeyMode,
+    stillSubmitted: stillSubmitted,
     fingerprintMode: fingerprintMode,
     passiveAuthModules: passiveAuthModules,
     securityKeyConfiguredFromPamConfig: securityKeyConfiguredFromPamConfig,
-    passwordPlaceholder: passwordPlaceholder,
+    promptAsksPin: promptAsksPin,
     authorizationLabel: authorizationLabel
   }
 }

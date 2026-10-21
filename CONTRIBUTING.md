@@ -23,7 +23,8 @@ firm rules.
    bug fix needs a test that fails without the fix. The helpers in
    `plugin/PolkitModel.js` are tested in `tests/` with Node's built-in test
    runner; `tests/manifest.test.js` guards the manifest and how the QML uses
-   the helpers.
+   the helpers. A new text on screen goes in every catalog in `plugin/i18n/`
+   (English in `en.json`), and `tests/i18n.test.js` checks that.
 4. Run the checks:
    ```sh
    just test    # node tests, and `omarchy plugin validate` on the plugin
