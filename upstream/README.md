@@ -1,6 +1,6 @@
 # Omarchy's polkit agent, as it was
 
-Unmodified copies of `shell/plugins/polkit/` from **Omarchy 4.0.4**
+Unmodified copies of `shell/plugins/polkit/` from **Omarchy 4.5.0rc1**
 (`pacman -Q omarchy`), which `plugin/` is based on. Omarchy is MIT licensed,
 like this project.
 

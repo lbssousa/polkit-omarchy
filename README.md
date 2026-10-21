@@ -21,7 +21,7 @@ pam_fprintd:
 - When pam_u2f gives up (no key plugged in, timeout), pam_unix asks for the
   password and the dialog switches to the password field by itself.
 - With `pinverification=1`, pam_u2f asks "Please enter the PIN:", and the
-  field shows that prompt instead of "Enter password".
+  field shows **Enter PIN** instead of "Enter password".
 - Escape cancels, as before.
 
 It only reacts to polkit authentications. Browser WebAuthn, ssh and gpg
@@ -42,14 +42,14 @@ Only one polkit agent can be registered per session, so this matters.
 
 ## Upstream
 
-Based on `shell/plugins/polkit/` from **Omarchy 4.0.4**. `just diff-upstream`
+Based on `shell/plugins/polkit/` from **Omarchy 4.5.0rc1**. `just diff-upstream`
 shows the changes against the installed Omarchy. That diff is what goes to
 the upstream pull request. Once Omarchy ships it, run `just unlink` and
 retire this project.
 
 ## Install
 
-You need Omarchy 4 with omarchy-shell, and a security key set up with
+You need Omarchy 4.5 or later with omarchy-shell, and a security key set up with
 pam_u2f for polkit, for example a line like this in `/etc/pam.d/polkit-1`
 (`cue` makes PAM print the touch request):
 
@@ -95,6 +95,16 @@ the symlink, then `omarchy-restart-shell`).
 | `just link` | Installs the checkout's plugin in the real shell (see above) |
 | `just unlink` | Back to `omarchy.polkit` |
 | `just diff-upstream` | Diff against the installed Omarchy agent |
+
+### Translations
+
+The texts this agent adds ("Touch your security key", "Enter PIN") are in
+`plugin/i18n/`, one JSON catalog per Omarchy language code, and are read with
+Omarchy's `Commons.Translations`. The texts it shares with `omarchy.polkit`
+come from Omarchy's own catalog. To fix a translation, edit its file; the
+shell picks up the change without a restart. Apart from `en`, `pt` and
+`pt-BR`, nobody has reviewed the translations yet, so corrections are welcome.
+`tests/i18n.test.js` checks that every language has every string.
 
 ## Releases
 

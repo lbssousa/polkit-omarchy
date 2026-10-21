@@ -1,0 +1,4 @@
+{
+  "polkit.touchSecurityKey": "Kosketa suojausavainta",
+  "polkit.enterPin": "Anna PIN-koodi"
+}

@@ -6,6 +6,25 @@ follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- The prompt follows the language picked under Setup > Language, like
+  Omarchy's own agent. "Touch your security key" and "Enter PIN" come from
+  `plugin/i18n/`, which has a catalog for each of Omarchy's 50 languages.
+  Apart from English and Portuguese, nobody has reviewed these translations
+  yet; corrections are welcome.
+
+### Changed
+- Based on Omarchy 4.5.0rc1's agent, which is now required: the texts it
+  shares with `omarchy.polkit` come from Omarchy's own translations, and the
+  dialog is mirrored for right-to-left languages.
+- With `pinverification`, the field shows a translated "Enter PIN" instead of
+  pam_u2f's English prompt.
+
+### Fixed
+- With `pinverification`, the dialog stayed on "Checking..." after the PIN
+  was sent and never said to touch the key. pam_u2f's touch cue now brings
+  the security key prompt back.
+
 ## [0.1.0] - 2026-10-02
 
 ### Added
