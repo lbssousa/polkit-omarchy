@@ -83,17 +83,17 @@ function fingerprintMode(s) {
   return !!s.fingerprintConfigured && !s.laptopClosed && waitingOnHardware(s) && !securityKeyMode(s)
 }
 
-function passwordPlaceholder(prompt) {
-  // PAM's own prompt when it asks for a PIN instead of the password
-  // (pam_u2f with pinverification asks "Please enter the PIN:").
-  var text = String(prompt || "").replace(/^\s+|[\s:]+$/g, "")
-  return /\bPIN\b/.test(text) ? text : "Enter password"
+// pam_u2f with pinverification asks "Please enter the PIN:" instead of the
+// password.
+function promptAsksPin(prompt) {
+  return /\bPIN\b/.test(String(prompt || ""))
 }
 
-function authorizationLabel(message) {
+function authorizationLabel(message, tr) {
+  var t = typeof tr === "function" ? tr : function(key, english) { return english }
   var text = String(message || "")
   var match = text.match(/^Authentication is (?:needed|required) to run [`']([^`']+)[`'] as /i)
-  return match ? "Authorize running '" + match[1] + "'" : text
+  return match ? t("polkit.authorizeRunning", "Authorize running '%1'").replace("%1", match[1]) : text
 }
 
 if (typeof module !== "undefined") {
@@ -107,7 +107,7 @@ if (typeof module !== "undefined") {
     fingerprintMode: fingerprintMode,
     passiveAuthModules: passiveAuthModules,
     securityKeyConfiguredFromPamConfig: securityKeyConfiguredFromPamConfig,
-    passwordPlaceholder: passwordPlaceholder,
+    promptAsksPin: promptAsksPin,
     authorizationLabel: authorizationLabel
   }
 }

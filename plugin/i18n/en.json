@@ -1,0 +1,4 @@
+{
+  "polkit.touchSecurityKey": "Touch your security key",
+  "polkit.enterPin": "Enter PIN"
+}

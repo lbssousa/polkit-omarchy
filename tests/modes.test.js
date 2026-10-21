@@ -146,11 +146,10 @@ test("the text helpers take any input without throwing", () => {
     const modules = M.passiveAuthModules(t)
     assert.ok(modules.every((m) => m === "fingerprint" || m === "security-key"))
     assert.equal(new Set(modules).size, modules.length, "no duplicates")
-    const placeholder = M.passwordPlaceholder(t)
-    assert.ok(placeholder === "Enter password" || /\bPIN\b/.test(placeholder))
+    assert.equal(typeof M.promptAsksPin(t), "boolean")
     assert.equal(typeof M.authorizationLabel(t), "string")
   }
   for (const odd of [null, undefined, 0, false, {}, []]) {
-    M.messageLooksSecurityKey(odd); M.passiveAuthModules(odd); M.passwordPlaceholder(odd)
+    M.messageLooksSecurityKey(odd); M.passiveAuthModules(odd); M.promptAsksPin(odd)
   }
 })

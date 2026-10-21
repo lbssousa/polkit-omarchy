@@ -30,15 +30,17 @@ test("messageLooksSecurityKey", () => {
   assert.equal(M.messageLooksSecurityKey("Touch the fingerprint sensor"), false)
 })
 
-test("passwordPlaceholder", () => {
-  assert.equal(M.passwordPlaceholder(""), "Enter password")
-  assert.equal(M.passwordPlaceholder("Password: "), "Enter password")
-  assert.equal(M.passwordPlaceholder("Senha: "), "Enter password")
-  assert.equal(M.passwordPlaceholder("Please enter the PIN:"), "Please enter the PIN")
+test("promptAsksPin", () => {
+  assert.equal(M.promptAsksPin(""), false)
+  assert.equal(M.promptAsksPin("Password: "), false)
+  assert.equal(M.promptAsksPin("Senha: "), false)
+  assert.equal(M.promptAsksPin("Please enter the PIN:"), true)
 })
 
 test("existing helpers still work", () => {
   assert.equal(M.fingerprintConfiguredFromPamConfig(fprintThenU2f), true)
   assert.equal(M.fingerprintConfiguredFromPamConfig(u2fOnly), false)
   assert.equal(M.authorizationLabel("Authentication is needed to run `/usr/bin/true' as the super user"), "Authorize running '/usr/bin/true'")
+  const tr = (key) => ({ "polkit.authorizeRunning": "Autorizar execução de '%1'" })[key]
+  assert.equal(M.authorizationLabel("Authentication is needed to run `/usr/bin/true' as the super user", tr), "Autorizar execução de '/usr/bin/true'")
 })

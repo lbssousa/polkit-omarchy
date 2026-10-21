@@ -59,9 +59,17 @@ test("text from outside is drawn as plain text", () => {
     const block = agent.slice(agent.indexOf(`id: ${id}`) - 200, agent.indexOf(`id: ${id}`) + 400)
     assert.match(block, /textFormat: Text\.PlainText/, id)
   }
-  const at = agent.indexOf("root.passwordPlaceholder")
+  // The placeholder shows strings from the translation catalogs.
+  const at = agent.indexOf('strings.t("polkit.touchSecurityKey")')
   assert.ok(at > 0)
   assert.match(agent.slice(at - 700, at), /textFormat: Text\.PlainText/, "placeholder")
+})
+
+test("the agent's own text comes from its translation catalogs", () => {
+  assert.match(agent, /Commons\.Translations \{ id: strings; directory: Qt\.resolvedUrl\("i18n"\) \}/)
+  assert.match(agent, /root\.securityKeyMode \? strings\.t\("polkit\.touchSecurityKey"\)/)
+  assert.match(agent, /root\.promptAsksPin \? strings\.t\("polkit\.enterPin"\)/)
+  assert.doesNotMatch(agent, /"Touch your security key"|"Enter PIN"/)
 })
 
 test("the password field stays hidden only in the two hardware states", () => {
