@@ -6,6 +6,11 @@ follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+- With `pinverification`, the dialog stayed on "Checking..." after the PIN
+  was sent and never said to touch the key. pam_u2f's touch cue now brings
+  the security key prompt back.
+
 ## [0.1.0] - 2026-10-02
 
 ### Added

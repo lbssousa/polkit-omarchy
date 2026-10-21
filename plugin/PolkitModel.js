@@ -67,6 +67,16 @@ function securityKeyMode(s) {
     && (!!s.securityKeyFirst || !s.fingerprintConfigured || !!s.laptopClosed)
 }
 
+// Whether an answer is still being checked after PAM's flow changed. `s`
+// holds submitted, responseRequired, supplementary and messageChanged (PAM
+// sent a new info message). PAM asking again ends the check; so does a new
+// touch cue, since PAM then took the answer (pam_u2f's PIN with
+// `pinverification`) and waits on the key instead.
+function stillSubmitted(s) {
+  if (!s.submitted || s.responseRequired) return false
+  return !(s.messageChanged && messageLooksSecurityKey(s.supplementary))
+}
+
 // Fingerprint owns the dialog while PAM waits on the reader (lid open, sensor
 // enrolled), unless it's the security key being waited on.
 function fingerprintMode(s) {
@@ -93,6 +103,7 @@ if (typeof module !== "undefined") {
     messageLooksSecurityKey: messageLooksSecurityKey,
     waitingOnHardware: waitingOnHardware,
     securityKeyMode: securityKeyMode,
+    stillSubmitted: stillSubmitted,
     fingerprintMode: fingerprintMode,
     passiveAuthModules: passiveAuthModules,
     securityKeyConfiguredFromPamConfig: securityKeyConfiguredFromPamConfig,

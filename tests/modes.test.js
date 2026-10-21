@@ -84,6 +84,50 @@ test("missing fields mean 'not set', never a crash or a hidden prompt", () => {
   assert.equal(M.securityKeyMode({ dialogVisible: true, responseRequired: true, supplementary: "Please touch the device." }), false)
 })
 
+// What PolkitAgent.qml's syncFromFlow() does with `submitted` when PAM's
+// flow changes, starting from the dialog's state `s`.
+function sync(s, flow) {
+  const messageChanged = flow.supplementary !== s.supplementary
+  const next = { ...s, ...flow }
+  next.submitted = M.stillSubmitted({ ...next, messageChanged })
+  return next
+}
+
+test("a touch cue after the PIN shows the security key state", () => {
+  // pam_u2f with pinverification and cue: PIN prompt, PIN sent, then the cue.
+  let s = { dialogVisible: true, securityKeyConfigured: true, fingerprintConfigured: true,
+    supplementary: "" }
+  s = sync(s, { responseRequired: true, supplementary: "" })
+  assert.equal(M.securityKeyMode(s), false)
+  s = { ...s, submitted: true }
+  s = sync(s, { responseRequired: false, supplementary: "" })
+  assert.equal(s.submitted, true, "the PIN is being checked")
+  assert.equal(M.securityKeyMode(s), false)
+  s = sync(s, { responseRequired: false, supplementary: "Please touch the device." })
+  assert.equal(s.submitted, false)
+  assert.equal(M.securityKeyMode(s), true)
+  assert.equal(M.fingerprintMode(s), false)
+})
+
+test("only a new touch cue ends the check of an answer", () => {
+  for (const submitted of [false, true]) {
+    for (const responseRequired of [false, true]) {
+      for (const messageChanged of [false, true]) {
+        for (const supplementary of MESSAGES) {
+          const s = { submitted, responseRequired, messageChanged, supplementary }
+          const expected = submitted && !responseRequired
+            && !(messageChanged && M.messageLooksSecurityKey(supplementary))
+          assert.equal(M.stillSubmitted(s), expected, JSON.stringify(s))
+        }
+      }
+    }
+  }
+  // A cue left over from before the password was sent (pam_u2f gave up,
+  // pam_unix asked) keeps "Checking...".
+  assert.equal(M.stillSubmitted({ submitted: true, supplementary: "Please touch the device." }), true)
+  assert.equal(M.stillSubmitted({}), false)
+})
+
 // A small deterministic PRNG, so a failure can be reproduced.
 function rng(seed) {
   return () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 2 ** 32

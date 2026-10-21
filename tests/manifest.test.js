@@ -49,6 +49,7 @@ test("the plugin folder holds no symlinks or executables", () => {
 test("the agent takes its mode decisions from the tested functions", () => {
   assert.match(agent, /PolkitModel\.securityKeyMode\(modeState\)/)
   assert.match(agent, /PolkitModel\.fingerprintMode\(modeState\)/)
+  assert.match(agent, /submitted = PolkitModel\.stillSubmitted\(/)
   // No second, untested copy of the rule.
   assert.doesNotMatch(agent, /messageLooksSecurityKey/)
 })

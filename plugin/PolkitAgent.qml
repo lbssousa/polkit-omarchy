@@ -105,12 +105,19 @@ Item {
 
     currentMessage = String(flow.message || "Authentication is needed...")
     currentPrompt = String(flow.inputPrompt || "")
-    currentSupplementary = String(flow.supplementaryMessage || "")
+    var supplementary = String(flow.supplementaryMessage || "")
+    var messageChanged = supplementary !== currentSupplementary
+    currentSupplementary = supplementary
     responseRequired = !!flow.isResponseRequired
     responseVisible = !!flow.responseVisible
     failed = !!flow.failed
 
-    if (responseRequired) submitted = false
+    submitted = PolkitModel.stillSubmitted({
+      submitted: submitted,
+      responseRequired: responseRequired,
+      supplementary: supplementary,
+      messageChanged: messageChanged
+    })
   }
 
   function beginFlow() {
