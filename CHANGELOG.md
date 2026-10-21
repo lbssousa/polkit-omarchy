@@ -6,6 +6,8 @@ follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-21
+
 ### Added
 - The prompt follows the language picked under Setup > Language, like
   Omarchy's own agent. "Touch your security key" and "Enter PIN" come from
