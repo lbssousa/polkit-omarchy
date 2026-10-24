@@ -13,14 +13,20 @@ const FLAGS = [
 const MESSAGES = [
   "", "Please touch the device.", "Touch your security key", "Tap your FIDO2 key",
   "Place your finger on the reader", "Touch the fingerprint sensor", "Swipe your finger",
-  "Account locked", "Password:", "Please enter the PIN:", "touch", "FINGER"
+  "Account locked", "Password:", "Please enter the PIN:", "touch", "FINGER",
+  "Please touch the FIDO authenticator.", "Tap the token",
+  "Placez votre doigt sur le lecteur d'empreintes digitales"
 ]
+// No cue_prompt, or one the keywords don't recognize.
+const CUES = [[], ["Tap the token"]]
 
 function* states() {
   for (let bits = 0; bits < 1 << FLAGS.length; bits++) {
     const s = {}
     FLAGS.forEach((f, i) => { s[f] = !!(bits & (1 << i)) })
-    for (const supplementary of MESSAGES) yield { ...s, supplementary }
+    for (const securityKeyCues of CUES) {
+      for (const supplementary of MESSAGES) yield { ...s, securityKeyCues, supplementary }
+    }
   }
 }
 
@@ -55,7 +61,7 @@ test("the two states never show together", () => {
 
 test("without a security key, the fingerprint state is exactly Omarchy's", () => {
   for (const s of states()) {
-    if (s.securityKeyConfigured || M.messageLooksSecurityKey(s.supplementary)) continue
+    if (s.securityKeyConfigured || M.messageLooksSecurityKey(s.supplementary, s.securityKeyCues)) continue
     assert.equal(M.securityKeyMode(s), false, JSON.stringify(s))
     assert.equal(M.fingerprintMode(s), upstreamFingerprintMode(s), JSON.stringify(s))
   }
@@ -71,9 +77,19 @@ test("a fingerprint message never turns into the security key state", () => {
 
 test("a touch cue shows the security key state while PAM waits", () => {
   for (const s of states()) {
-    if (M.waitingOnHardware(s) && M.messageLooksSecurityKey(s.supplementary)) {
+    if (M.waitingOnHardware(s) && M.messageLooksSecurityKey(s.supplementary, s.securityKeyCues)) {
       assert.equal(M.securityKeyMode(s), true, JSON.stringify(s))
     }
+  }
+})
+
+test("any other message while the reader is reachable is the reader's", () => {
+  // pam_fprintd's messages are translated, pam_u2f's cue never is.
+  for (const s of states()) {
+    if (!M.waitingOnHardware(s) || !s.fingerprintConfigured || s.laptopClosed) continue
+    if (!s.supplementary || M.messageLooksSecurityKey(s.supplementary, s.securityKeyCues)) continue
+    assert.equal(M.securityKeyMode(s), false, JSON.stringify(s))
+    assert.equal(M.fingerprintMode(s), true, JSON.stringify(s))
   }
 })
 
@@ -109,15 +125,28 @@ test("a touch cue after the PIN shows the security key state", () => {
   assert.equal(M.fingerprintMode(s), false)
 })
 
+test("a configured cue_prompt after the PIN shows the security key state", () => {
+  let s = { dialogVisible: true, securityKeyConfigured: true, securityKeyFirst: true,
+    fingerprintConfigured: true, securityKeyCues: ["Tap the token"], supplementary: "" }
+  s = sync({ ...s, submitted: true }, { responseRequired: false, supplementary: "" })
+  assert.equal(s.submitted, true)
+  s = sync(s, { responseRequired: false, supplementary: "Tap the token" })
+  assert.equal(s.submitted, false)
+  assert.equal(M.securityKeyMode(s), true)
+  assert.equal(M.fingerprintMode(s), false)
+})
+
 test("only a new touch cue ends the check of an answer", () => {
   for (const submitted of [false, true]) {
     for (const responseRequired of [false, true]) {
       for (const messageChanged of [false, true]) {
-        for (const supplementary of MESSAGES) {
-          const s = { submitted, responseRequired, messageChanged, supplementary }
-          const expected = submitted && !responseRequired
-            && !(messageChanged && M.messageLooksSecurityKey(supplementary))
-          assert.equal(M.stillSubmitted(s), expected, JSON.stringify(s))
+        for (const securityKeyCues of CUES) {
+          for (const supplementary of MESSAGES) {
+            const s = { submitted, responseRequired, messageChanged, securityKeyCues, supplementary }
+            const expected = submitted && !responseRequired
+              && !(messageChanged && M.messageLooksSecurityKey(supplementary, securityKeyCues))
+            assert.equal(M.stillSubmitted(s), expected, JSON.stringify(s))
+          }
         }
       }
     }
@@ -146,10 +175,12 @@ test("the text helpers take any input without throwing", () => {
     const modules = M.passiveAuthModules(t)
     assert.ok(modules.every((m) => m === "fingerprint" || m === "security-key"))
     assert.equal(new Set(modules).size, modules.length, "no duplicates")
+    assert.ok(M.securityKeyCuesFromPamConfig(t).every((c) => typeof c === "string" && c.length > 0))
     assert.equal(typeof M.promptAsksPin(t), "boolean")
     assert.equal(typeof M.authorizationLabel(t), "string")
   }
   for (const odd of [null, undefined, 0, false, {}, []]) {
     M.messageLooksSecurityKey(odd); M.passiveAuthModules(odd); M.promptAsksPin(odd)
+    M.securityKeyCuesFromPamConfig(odd); M.messageLooksSecurityKey("Tap", odd)
   }
 })

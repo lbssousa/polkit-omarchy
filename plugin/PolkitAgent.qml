@@ -43,6 +43,8 @@ Item {
   property bool securityKeyConfigured: false
   // pam_u2f comes before pam_fprintd, so it is the module PAM waits on first.
   property bool securityKeyFirst: false
+  // pam_u2f's cue_prompt= values, so a custom cue still shows the key.
+  property var securityKeyCues: []
   // Lid shut right now — the reader is physically unreachable, so we fall back
   // to the password even when a sensor is enrolled. Refreshed per request.
   property bool laptopClosed: false
@@ -66,6 +68,7 @@ Item {
     supplementary: currentSupplementary,
     securityKeyConfigured: securityKeyConfigured,
     securityKeyFirst: securityKeyFirst,
+    securityKeyCues: securityKeyCues,
     fingerprintConfigured: fingerprintConfigured,
     laptopClosed: laptopClosed
   })
@@ -75,8 +78,17 @@ Item {
   readonly property int cardHeight: panel.height > 0 ? Math.min(fieldHeight + contentMargin * 2, panel.height - Style.gapsOut * 2) : fieldHeight + contentMargin * 2
   // Password mode is a wide field; fingerprint mode collapses to a square that
   // just frames the centered sensor icon; the security key prompt widens to
-  // fit its instruction.
-  readonly property int cardWidth: fingerprintMode ? cardHeight : Math.min(Style.space(securityKeyMode ? 400 : 312), Math.max(Style.space(260), panel.width - Style.gapsOut * 2))
+  // fit its instruction, which is longer in some languages ("Toque na sua
+  // chave de segurança"), up to the screen's width.
+  readonly property int securityKeyCardWidth: Math.ceil(touchMetrics.advanceWidth + Style.space(40) + card.contentLeftInset + card.contentRightInset)
+  readonly property int cardWidth: fingerprintMode ? cardHeight : Math.min(securityKeyMode ? Math.max(Style.space(400), securityKeyCardWidth) : Style.space(312), Math.max(Style.space(260), panel.width - Style.gapsOut * 2))
+
+  TextMetrics {
+    id: touchMetrics
+    font.family: root.fontFamily
+    font.pixelSize: Style.font.iconLarge
+    text: strings.t("polkit.touchSecurityKey")
+  }
 
   function authorizationLabel(message) {
     return message ? PolkitModel.authorizationLabel(message, I18n.t) : I18n.t("polkit.authenticationNeeded")
@@ -86,6 +98,7 @@ Item {
     fingerprintConfigured = PolkitModel.fingerprintConfiguredFromPamConfig(raw)
     securityKeyConfigured = PolkitModel.securityKeyConfiguredFromPamConfig(raw)
     securityKeyFirst = PolkitModel.passiveAuthModules(raw)[0] === "security-key"
+    securityKeyCues = PolkitModel.securityKeyCuesFromPamConfig(raw)
   }
 
   function refreshLidState() {
@@ -121,6 +134,7 @@ Item {
       submitted: submitted,
       responseRequired: responseRequired,
       supplementary: supplementary,
+      securityKeyCues: securityKeyCues,
       messageChanged: messageChanged
     })
   }
@@ -203,6 +217,7 @@ Item {
       root.fingerprintConfigured = false
       root.securityKeyConfigured = false
       root.securityKeyFirst = false
+      root.securityKeyCues = []
     }
     onFileChanged: reload()
   }
