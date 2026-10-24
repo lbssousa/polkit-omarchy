@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "lbssousa.polkit",
   "name": "Polkit Agent (security keys)",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "author": "Laércio de Sousa",
   "description": "Omarchy's polkit agent plus a touch prompt for FIDO security keys (pam_u2f).",
   "omarchy": {
