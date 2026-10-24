@@ -15,9 +15,12 @@ instead, the same way the stock agent shows the fingerprint sensor for
 pam_fprintd:
 
 - **Security key mode** is used while PAM waits without asking for a response
-  and either the info message looks like a touch request (`cue`, or a custom
-  `cue_prompt`), or pam_u2f is in the stack and comes before pam_fprintd (or
-  the fingerprint reader is unavailable).
+  and either the info message is a touch request (pam_u2f's `cue`, or the
+  `cue_prompt` set in `/etc/pam.d/polkit-1`, whatever its wording), or
+  pam_u2f is in the stack and the fingerprint reader is unavailable. With a
+  reachable reader, pam_u2f must come before pam_fprintd, and only until
+  another message arrives: pam_fprintd's messages are translated and
+  pam_u2f's cue isn't, so any other message is the reader's.
 - When pam_u2f gives up (no key plugged in, timeout), pam_unix asks for the
   password and the dialog switches to the password field by itself.
 - With `pinverification=1`, pam_u2f asks "Please enter the PIN:", and the
