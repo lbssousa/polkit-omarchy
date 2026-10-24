@@ -6,6 +6,8 @@ follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-10-24
+
 ### Fixed
 - With pam_u2f first and a fingerprint reader, a translated pam_fprintd
   message (such as "Placez votre doigt sur le lecteur d'empreintes
