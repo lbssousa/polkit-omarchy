@@ -6,6 +6,23 @@ follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+- With pam_u2f first and a fingerprint reader, a translated pam_fprintd
+  message (such as "Placez votre doigt sur le lecteur d'empreintes
+  digitales") showed the security key while PAM waited on the reader. While
+  the reader is reachable, any message that isn't the key's cue is now the
+  reader's.
+- A `cue_prompt` set on pam_u2f in `/etc/pam.d/polkit-1` is recognized
+  whatever its wording, so it shows the key instead of the fingerprint, and
+  after a PIN with `pinverification` it no longer stays on "Checking...".
+  Its arguments are split the way Linux-PAM splits them.
+- "Touch your security key" was cut off in languages where it is longer,
+  such as Portuguese ("Toque na sua chave de segurança"). The dialog now
+  widens to fit the translated instruction, up to the screen's width.
+
+These come from the review of the upstream pull request
+([omacom/omarchy#16094](https://github.com/omacom/omarchy/pull/16094)).
+
 ## [0.2.0] - 2026-10-21
 
 ### Added

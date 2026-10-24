@@ -59,8 +59,9 @@ test("text from outside is drawn as plain text", () => {
     const block = agent.slice(agent.indexOf(`id: ${id}`) - 200, agent.indexOf(`id: ${id}`) + 400)
     assert.match(block, /textFormat: Text\.PlainText/, id)
   }
-  // The placeholder shows strings from the translation catalogs.
-  const at = agent.indexOf('strings.t("polkit.touchSecurityKey")')
+  // The placeholder shows strings from the translation catalogs. The last
+  // use is the placeholder; the one before only measures the card's width.
+  const at = agent.lastIndexOf('strings.t("polkit.touchSecurityKey")')
   assert.ok(at > 0)
   assert.match(agent.slice(at - 700, at), /textFormat: Text\.PlainText/, "placeholder")
 })
