@@ -6,6 +6,11 @@ follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+- The security key card is now sized from the width the instruction takes
+  when laid out, not from its font advance, which in some proportional fonts
+  fell a pixel short and could cut the instruction off.
+
 ## [0.2.1] - 2026-10-24
 
 ### Fixed
