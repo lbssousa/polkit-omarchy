@@ -6,6 +6,8 @@ follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.3] - 2026-11-22
+
 ### Fixed
 - Keyboard focus leaves the password field when the security key prompt
   takes over. The hidden field kept it, so anything typed while waiting for
