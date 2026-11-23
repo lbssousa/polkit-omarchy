@@ -78,3 +78,24 @@ test("existing helpers still work", () => {
   const tr = (key) => ({ "polkit.authorizeRunning": "Autorizar execução de '%1'" })[key]
   assert.equal(M.authorizationLabel("Authentication is needed to run `/usr/bin/true' as the super user", tr), "Autorizar execução de '/usr/bin/true'")
 })
+
+test("fingerprintScanFailed: a failed scan while the reader owns the dialog", () => {
+  const scan = (over) => M.fingerprintScanFailed({
+    fingerprintMode: true, supplementary: "Failed to match fingerprint",
+    supplementaryIsError: true, securityKeyCues: [], ...over
+  })
+  assert.equal(scan({}), true)
+  // pam_fprintd's messages come translated.
+  assert.equal(scan({ supplementary: "Falha ao reconhecer a impressão digital" }), true)
+  // A retry is a scan that didn't work too.
+  assert.equal(scan({ supplementary: "Swipe was too fast, try again" }), true)
+  // The prompt for the next try is an info message, not a failure.
+  assert.equal(scan({ supplementary: "Place your finger on the reader", supplementaryIsError: false }), false)
+  // Outside the fingerprint state, wrong passwords have their own feedback.
+  assert.equal(scan({ fingerprintMode: false }), false)
+  assert.equal(scan({ supplementary: "" }), false)
+  assert.equal(scan({ supplementary: "   " }), false)
+  // A security key cue is never taken for a failed scan.
+  assert.equal(scan({ supplementary: "Please touch the device." }), false)
+  assert.equal(scan({ supplementary: "Tap the token", securityKeyCues: ["Tap the token"] }), false)
+})

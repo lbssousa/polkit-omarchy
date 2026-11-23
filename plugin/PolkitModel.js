@@ -134,6 +134,18 @@ function fingerprintMode(s) {
   return !!s.fingerprintConfigured && !s.laptopClosed && waitingOnHardware(s) && !securityKeyMode(s)
 }
 
+// pam_fprintd reports a scan that didn't work (no match, or a retry such as a
+// swipe that was too fast) as a PAM error message, in the user's language, and
+// prompts for the next try ("Place your finger on …") with an info one. `s`
+// holds fingerprintMode, supplementary, supplementaryIsError and
+// securityKeyCues. Only a failed scan while the reader owns the dialog gets the
+// feedback; a security key cue never does.
+function fingerprintScanFailed(s) {
+  if (!s.fingerprintMode || !s.supplementaryIsError) return false
+  var text = String(s.supplementary || "").replace(/^\s+|\s+$/g, "")
+  return text !== "" && !messageLooksSecurityKey(text, s.securityKeyCues)
+}
+
 // pam_u2f with pinverification asks "Please enter the PIN:" instead of the
 // password.
 function promptAsksPin(prompt) {
@@ -156,6 +168,7 @@ if (typeof module !== "undefined") {
     securityKeyMode: securityKeyMode,
     stillSubmitted: stillSubmitted,
     fingerprintMode: fingerprintMode,
+    fingerprintScanFailed: fingerprintScanFailed,
     passiveAuthModules: passiveAuthModules,
     securityKeyConfiguredFromPamConfig: securityKeyConfiguredFromPamConfig,
     securityKeyCuesFromPamConfig: securityKeyCuesFromPamConfig,

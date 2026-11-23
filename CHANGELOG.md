@@ -6,6 +6,16 @@ follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- A fingerprint scan that doesn't work now shows. The sensor glyph and the
+  border turn red and the card shakes, as for a wrong password, and the label
+  above the card shows pam_fprintd's own message ("Failed to match
+  fingerprint", "Swipe was too fast, try again", in your language) for a few
+  seconds. The dialog stays on the fingerprint for the next try. After the
+  last try, the message stays up while the dialog moves on to the security
+  key or the password, saying why. Before, every failed scan looked the same
+  as no scan at all. Proposed upstream in omacom/omarchy#19948.
+
 ## [0.2.3] - 2026-11-22
 
 ### Fixed
