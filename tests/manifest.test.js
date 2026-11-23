@@ -50,6 +50,7 @@ test("the agent takes its mode decisions from the tested functions", () => {
   assert.match(agent, /PolkitModel\.securityKeyMode\(modeState\)/)
   assert.match(agent, /PolkitModel\.fingerprintMode\(modeState\)/)
   assert.match(agent, /submitted = PolkitModel\.stillSubmitted\(/)
+  assert.match(agent, /if \(PolkitModel\.fingerprintScanFailed\(/)
   // No second, untested copy of the rule.
   assert.doesNotMatch(agent, /messageLooksSecurityKey/)
 })
@@ -76,4 +77,13 @@ test("the agent's own text comes from its translation catalogs", () => {
 test("the password field stays hidden only in the two hardware states", () => {
   assert.match(agent, /visible: !root\.securityKeyMode/)
   assert.match(agent, /visible: !root\.fingerprintMode/)
+})
+
+// A failed scan must not leave the fingerprint state: errorFlash is part of
+// the mode decision (waitingOnHardware), its own flag isn't.
+test("a failed fingerprint scan keeps the fingerprint state", () => {
+  const modeState = agent.slice(agent.indexOf("readonly property var modeState"), agent.indexOf("readonly property bool securityKeyMode"))
+  assert.doesNotMatch(modeState, /fingerprintFlash/)
+  const trigger = agent.slice(agent.indexOf("function triggerFingerprintFeedback"), agent.indexOf("function clearFingerprintFeedback"))
+  assert.doesNotMatch(trigger, /errorFlash/)
 })

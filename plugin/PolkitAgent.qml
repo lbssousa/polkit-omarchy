@@ -22,7 +22,7 @@ Item {
   property color foreground: Commons.Color.polkit.text
   property color border: Commons.Color.polkit.border
   property color borderError: Commons.Color.polkit.borderError
-  property var borderSpec: Border.surfaceSpec("polkit", errorFlash ? "border-error" : "border", errorFlash ? borderError : border, Math.max(1, Style.space(2)), "border-alpha")
+  property var borderSpec: Border.surfaceSpec("polkit", showingError ? "border-error" : "border", showingError ? borderError : border, Math.max(1, Style.space(2)), "border-alpha")
   property color scrim: Commons.Color.polkit.scrim
   readonly property int cornerRadius: Style.cornerRadius
   property int contentMargin: Style.spacing.panelPadding
@@ -37,6 +37,17 @@ Item {
   property bool responseVisible: false
   property bool failed: false
   property bool errorFlash: false
+  // A fingerprint scan that didn't work: the glyph and border turn red and the
+  // card shakes, as for a wrong password, but the dialog stays in fingerprint
+  // mode (errorFlash would leave it) while pam_fprintd waits for the next try.
+  property bool fingerprintFlash: false
+  // pam_fprintd's own message for it ("Failed to match fingerprint", in the
+  // user's language), shown in place of the authorization label for a moment.
+  property string fingerprintNotice: ""
+  // The last PAM message checked for a failed scan, with its error flag: the
+  // two arrive as separate signals, and a repeat isn't a new scan.
+  property string lastSupplementaryKey: ""
+  readonly property bool showingError: errorFlash || fingerprintFlash
   // pam_fprintd appears in the polkit PAM stack (a sensor is enrolled).
   property bool fingerprintConfigured: false
   // pam_u2f appears in the polkit PAM stack (a FIDO security key is set up).
@@ -130,6 +141,8 @@ Item {
     responseVisible = false
     failed = false
     errorFlash = false
+    clearFingerprintFeedback()
+    lastSupplementaryKey = ""
     submitted = false
     passwordInput.text = ""
   }
@@ -154,6 +167,39 @@ Item {
       securityKeyCues: securityKeyCues,
       messageChanged: messageChanged
     })
+    // Once both the message and its error flag have arrived.
+    Qt.callLater(checkFingerprintFeedback)
+  }
+
+  function checkFingerprintFeedback() {
+    var flow = polkitAgent.flow
+    if (!flow) return
+    var supplementary = String(flow.supplementaryMessage || "")
+    var isError = !!flow.supplementaryIsError
+    var key = (isError ? "error:" : "info:") + supplementary
+    if (key === lastSupplementaryKey) return
+    lastSupplementaryKey = key
+    if (PolkitModel.fingerprintScanFailed({
+      fingerprintMode: fingerprintMode,
+      supplementary: supplementary,
+      supplementaryIsError: isError,
+      securityKeyCues: securityKeyCues
+    })) triggerFingerprintFeedback(supplementary)
+  }
+
+  function triggerFingerprintFeedback(message) {
+    fingerprintFlash = true
+    fingerprintNotice = message.replace(/^\s+|\s+$/g, "")
+    fingerprintFlashTimer.restart()
+    fingerprintNoticeTimer.restart()
+    shakeAnimation.restart()
+  }
+
+  function clearFingerprintFeedback() {
+    fingerprintFlashTimer.stop()
+    fingerprintNoticeTimer.stop()
+    fingerprintFlash = false
+    fingerprintNotice = ""
   }
 
   function beginFlow() {
@@ -161,6 +207,8 @@ Item {
     closing = false
     submitted = false
     passwordInput.text = ""
+    clearFingerprintFeedback()
+    lastSupplementaryKey = ""
     refreshLidState()
     syncFromFlow()
     Qt.callLater(refocus)
@@ -217,6 +265,23 @@ Item {
     interval: 1200
     repeat: false
     onTriggered: root.errorFlash = false
+  }
+
+  Timer {
+    id: fingerprintFlashTimer
+    interval: 1200
+    repeat: false
+    onTriggered: root.fingerprintFlash = false
+  }
+
+  // Longer than the flash: the message has to be read. It also outlives the
+  // fingerprint state when that was the last try, saying why the dialog moved
+  // on to the security key or the password.
+  Timer {
+    id: fingerprintNoticeTimer
+    interval: 3000
+    repeat: false
+    onTriggered: root.fingerprintNotice = ""
   }
 
   SequentialAnimation {
@@ -355,7 +420,7 @@ Item {
         text: "\udb80\ude37"
         fontFamily: root.fontFamily
         fontSize: Math.round(root.fieldHeight * 0.7)
-        color: root.errorFlash ? Commons.Color.polkit.textError : root.accent
+        color: root.showingError ? Commons.Color.polkit.textError : root.accent
       }
 
       Row {
@@ -470,8 +535,8 @@ Item {
         anchors.fill: parent
         anchors.leftMargin: Style.space(12)
         anchors.rightMargin: Style.space(12)
-        text: root.authorizationLabel(root.currentMessage)
-        color: root.foreground
+        text: root.fingerprintNotice !== "" ? root.fingerprintNotice : root.authorizationLabel(root.currentMessage)
+        color: root.fingerprintNotice !== "" ? Commons.Color.polkit.textError : root.foreground
         font.family: root.fontFamily
         font.pixelSize: Style.font.bodySmall
         horizontalAlignment: Text.AlignHCenter
