@@ -6,6 +6,8 @@ follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-23
+
 ### Added
 - A fingerprint scan that doesn't work now shows. The sensor glyph and the
   border turn red and the card shakes, as for a wrong password, and the label
