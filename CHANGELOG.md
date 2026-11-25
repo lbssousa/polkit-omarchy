@@ -6,6 +6,23 @@ follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Encrypted drives ask for their password in this dialog
+  (`omarchy.polkit unlockDrive`, from Omarchy's `omarchy-drive-unlock`).
+  Without it, udiskie's prompt reached this plugin, found no such method and
+  failed without a word, so no encrypted drive could be unlocked.
+- The prompt shows the coding agent it comes from, with the program on a line
+  of its own (`omarchy.polkit expect` labels), and names the drive a udisks
+  format is for.
+- A test that every IPC method of Omarchy's agent exists here.
+
+### Changed
+
+- The dialog closes as soon as authentication succeeds or is cancelled,
+  instead of after a short delay.
+- Based on Omarchy's main branch at d4512a7 (was 4.5.0rc1).
+
 ## [0.3.0] - 2026-11-23
 
 ### Added
