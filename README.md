@@ -45,7 +45,8 @@ Only one polkit agent can be registered per session, so this matters.
 
 ## Upstream
 
-Based on `shell/plugins/polkit/` from **Omarchy 4.5.0rc1**. `just diff-upstream`
+Based on `shell/plugins/polkit/` from **Omarchy's main branch at a30167e**
+(the snapshot in `upstream/`). `just diff-upstream`
 shows the changes against the installed Omarchy. That diff is what goes to
 the upstream pull request. Once Omarchy ships it, run `just unlink` and
 retire this project.

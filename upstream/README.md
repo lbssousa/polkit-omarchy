@@ -1,8 +1,9 @@
 # Omarchy's polkit agent, as it was
 
-Unmodified copies of `shell/plugins/polkit/` from **Omarchy 4.5.0rc1**
-(`pacman -Q omarchy`), which `plugin/` is based on. Omarchy is MIT licensed,
-like this project.
+Unmodified copies of `shell/plugins/polkit/` from **Omarchy's main branch at
+a30167e** (2026-11-26), after pkexec prompts moved to two lines (#20236,
+#20240), which `plugin/` is based on. Omarchy is MIT licensed, like this
+project.
 
 This is the base for reviewing and for updating:
 

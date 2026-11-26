@@ -74,9 +74,29 @@ test("promptAsksPin", () => {
 test("existing helpers still work", () => {
   assert.equal(M.fingerprintConfiguredFromPamConfig(fprintThenU2f), true)
   assert.equal(M.fingerprintConfiguredFromPamConfig(u2fOnly), false)
-  assert.equal(M.authorizationLabel("Authentication is needed to run `/usr/bin/true' as the super user"), "Authorize running '/usr/bin/true'")
-  const tr = (key) => ({ "polkit.authorizeRunning": "Autorizar execução de '%1'" })[key]
-  assert.equal(M.authorizationLabel("Authentication is needed to run `/usr/bin/true' as the super user", tr), "Autorizar execução de '/usr/bin/true'")
+  const pkexec = "Authentication is needed to run `/usr/bin/true' as the super user"
+  // The command goes on the line under the heading, not inside it.
+  assert.equal(M.authorizationLabel(pkexec), "Authorize running command")
+  assert.equal(M.authorizationLabel(pkexec, undefined, "Claude"), "Authorize Claude to run command")
+  assert.equal(M.promptProgram(pkexec), "/usr/bin/true")
+  const tr = (key) => ({
+    "polkit.authorizeCommand": "Autorizar execução de comando",
+    "polkit.authorizeAgentCommand": "Autorizar %1 a executar comando",
+  })[key]
+  assert.equal(M.authorizationLabel(pkexec, tr), "Autorizar execução de comando")
+  // A $ in an agent's name stays as it is.
+  assert.equal(M.authorizationLabel(pkexec, tr, "a$&b"), "Autorizar a$&b a executar comando")
+})
+
+test("singleLine collapses line breaks and runs of whitespace", () => {
+  assert.equal(M.singleLine("a\n  b\tc \r\n"), "a b c")
+  assert.equal(M.singleLine(""), "")
+  assert.equal(M.singleLine(null), "")
+  assert.equal(M.singleLine(undefined), "")
+  // Messages that aren't pkexec's come back on one line too.
+  assert.equal(M.authorizationLabel("Authentication is required\nto mount the drive"), "Authentication is required to mount the drive")
+  assert.equal(M.authorizationLabel("Authentication is required to format\n  Samsung SSD"), "Authorize formatting of Samsung SSD")
+  assert.equal(M.authorizationLabel("Authentication is needed to run `/usr/bin/true' as the super user", undefined, "Claude\nCode"), "Authorize Claude Code to run command")
 })
 
 test("fingerprintScanFailed: a failed scan while the reader owns the dialog", () => {
