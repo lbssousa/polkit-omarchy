@@ -15,13 +15,20 @@ follow [Semantic Versioning](https://semver.org/).
 - The prompt shows the coding agent it comes from, with the program on a line
   of its own (`omarchy.polkit expect` labels), and names the drive a udisks
   format is for.
+- Every pkexec prompt has two lines, like Omarchy's: *Authorize running
+  command* (or *Authorize <agent> to run command*, or the caller's reason)
+  over the command itself. The command used to be quoted inside the heading
+  when nothing labelled it.
 - A test that every IPC method of Omarchy's agent exists here.
 
 ### Changed
 
 - The dialog closes as soon as authentication succeeds or is cancelled,
   instead of after a short delay.
-- Based on Omarchy's main branch at d4512a7 (was 4.5.0rc1).
+- Line breaks in a label, an agent name or a command are collapsed to
+  spaces, and each line of the label above the card stays one line, clipped
+  to the screen, so a multi-line command can no longer overflow it.
+- Based on Omarchy's main branch at a30167e (was 4.5.0rc1).
 
 ## [0.3.0] - 2026-11-23
 
